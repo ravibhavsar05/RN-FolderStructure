@@ -2,6 +2,10 @@
 
 A VS Code extension that generates a standardized folder structure for React Native projects. This extension helps you maintain a clean and organized codebase by creating a well-structured directory layout following React Native best practices.
 
+## [Visual Studio Code - Plugin Link](https://marketplace.visualstudio.com/items?itemName=RaviBhavsar.react-native-folder-structure)
+
+
+
 ## Features
 
 - Creates a complete folder structure for React Native projects
@@ -74,7 +78,7 @@ None at the moment.
 
 ## Release Notes
 
-### 0.1.0
+### 1.0.0
 
 Initial release of React Native Folder Structure Generator
 
