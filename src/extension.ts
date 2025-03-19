@@ -199,7 +199,6 @@ async function createFolderStructure(
 ) {
 	for (const [name, subStructure] of Object.entries(structure)) {
 		const fullPath = path.join(basePath, name);
-<<<<<<< HEAD
 		outputChannel.appendLine(`Processing: ${fullPath}`);
 
 		if (typeof subStructure === "string") {
@@ -222,25 +221,6 @@ async function createFolderStructure(
 			fs.writeFileSync(readmePath, readmeContent);
 			outputChannel.appendLine(`Created README.md in: ${fullPath}`);
 
-=======
-		outputChannel.appendLine(`Creating directory: ${fullPath}`);
-
-		if (!fs.existsSync(fullPath)) {
-			fs.mkdirSync(fullPath, { recursive: true });
-			outputChannel.appendLine(`Created directory: ${fullPath}`);
-		} else {
-			outputChannel.appendLine(`Directory already exists: ${fullPath}`);
-		}
-
-		// Create a README.md file in each folder explaining its purpose
-		const readmePath = path.join(fullPath, "README.md");
-		outputChannel.appendLine(`Creating README.md in: ${fullPath}`);
-		const readmeContent = generateReadmeContent(name);
-		fs.writeFileSync(readmePath, readmeContent);
-		outputChannel.appendLine(`Created README.md in: ${fullPath}`);
-
-		if (typeof subStructure === "object") {
->>>>>>> 516cab6adc698a4b2eae268c748dd1b09f249945
 			await createFolderStructure(fullPath, subStructure);
 		}
 	}

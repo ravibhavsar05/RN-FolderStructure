@@ -3,19 +3,14 @@
   "displayName": "React Native Folder Structure Generator",
   "description": "Generate a standard folder structure for React Native projects",
   "icon": "RNLogo.png",
-<<<<<<< HEAD
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "RaviBhavsar",
-=======
-  "version": "0.1.0",
->>>>>>> 516cab6adc698a4b2eae268c748dd1b09f249945
   "engines": {
     "vscode": "^1.75.0"
   },
   "categories": [
     "Other"
   ],
-<<<<<<< HEAD
   "keywords": [
     "react-native",
     "folder-structure",
@@ -29,11 +24,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/ravibhavsar05/RN-FolderStructure"
-=======
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ravibhavsar05/RN-FolderStructure.git"
->>>>>>> 516cab6adc698a4b2eae268c748dd1b09f249945
   },
   "main": "./out/extension.js",
   "contributes": {
@@ -50,12 +40,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "lint": "eslint src --ext ts",
-<<<<<<< HEAD
     "test": "node ./out/test/runTest.js",
     "publish": "./scripts/publish.sh"
-=======
-    "test": "node ./out/test/runTest.js"
->>>>>>> 516cab6adc698a4b2eae268c748dd1b09f249945
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
