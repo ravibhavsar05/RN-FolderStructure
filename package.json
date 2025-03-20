@@ -1,9 +1,9 @@
 {
   "name": "react-native-folder-structure",
   "displayName": "React Native Folder Structure Generator",
-  "description": "Generate a standard folder structure for React Native projects",
+  "description": "Generate a standardized folder structure for React Native projects with smart component generation",
   "icon": "RNLogo.png",
-  "version": "1.0.8",
+  "version": "1.1.1",
   "publisher": "RaviBhavsar",
   "engines": {
     "vscode": "^1.75.0"
@@ -31,8 +31,43 @@
       {
         "command": "react-native-folder-structure.generate",
         "title": "React Native: Generate Folder Structure"
+      },
+      {
+        "command": "react-native-folder-structure.generateComponent",
+        "title": "React Native: Generate Component"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "React Native Folder Structure",
+      "properties": {
+        "reactNativeFolderStructure.template": {
+          "type": "string",
+          "default": "standard",
+          "description": "Choose the folder structure template",
+          "enum": ["standard", "feature-based", "layer-based"]
+        },
+        "reactNativeFolderStructure.generateTests": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate test files for components"
+        },
+        "reactNativeFolderStructure.generateStyles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate separate style files"
+        },
+        "reactNativeFolderStructure.includeRedux": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include Redux setup"
+        },
+        "reactNativeFolderStructure.includeNavigation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include React Navigation setup"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -1,9 +1,20 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
+import { componentTemplates } from "./templates/componentTemplates";
 
 interface FolderStructure {
-	[key: string]: FolderStructure | string;
+	[key: string]: FolderStructure | string | undefined;
+}
+
+interface ComponentTemplate {
+	component: string;
+	test: string;
+	styles: string;
+}
+
+interface ComponentTemplates {
+	[key: string]: ComponentTemplate;
 }
 
 // Create output channel
@@ -19,7 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
 		'Extension "react-native-folder-structure" is now active!'
 	);
 
-	let disposable = vscode.commands.registerCommand(
+	// Register the folder structure generation command
+	let generateCommand = vscode.commands.registerCommand(
 		"react-native-folder-structure.generate",
 		async () => {
 			outputChannel.appendLine('Command "generate" was triggered');
@@ -30,6 +42,14 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showErrorMessage(errorMsg);
 				return;
 			}
+
+			// Get configuration
+			const config = vscode.workspace.getConfiguration('reactNativeFolderStructure');
+			const template = config.get('template');
+			const generateTests = config.get('generateTests');
+			const generateStyles = config.get('generateStyles');
+			const includeRedux = config.get('includeRedux');
+			const includeNavigation = config.get('includeNavigation');
 
 			const folderStructure = {
 				src: {
@@ -44,39 +64,12 @@ export function activate(context: vscode.ExtensionContext) {
 					},
 					components: {
 						common: {
-							"Button.tsx":
-								`import React from 'react';
-								import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-
-							interface ButtonProps {
-								title: string;
-								onPress: () => void;
-							}
-
-							export const Button: React.FC<ButtonProps> = ({ title, onPress }) => {
-								return (
-									<TouchableOpacity style={styles.button} onPress={onPress}>
-										<Text style={styles.text}>{title}</Text>
-									</TouchableOpacity>
-								);
-							};
-
-							const styles = StyleSheet.create({
-								button: {
-									padding: 10,
-									backgroundColor: '#007AFF',
-									borderRadius: 5,
-									alignItems: 'center',
-								},
-								text: {
-									color: '#FFFFFF',
-									fontSize: 16,
-								},
-							});`,
-							"index.ts": "// Export all common components\nexport * from './Button';\n",
+							"Button.tsx": componentTemplates.button.component,
+							"Card.tsx": componentTemplates.card.component,
+							"index.ts": "// Export all common components\nexport * from './Button';\nexport * from './Card';\n",
 						},
 					},
-					navigation: {
+					navigation: includeNavigation ? {
 						"index.ts": "// Export navigation configuration\n",
 						"AppNavigator.tsx": `import React from 'react';
 						import { NavigationContainer } from '@react-navigation/native';
@@ -88,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
 									</NavigationContainer>
 								);
 							};`,
-					},
+					} : {},
 					screens: {
 						Home: {
 							"HomeScreen.tsx": `import React from 'react';
@@ -112,7 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
 							"styles.ts": "// Home screen styles\n",
 						},
 					},
-					store: {
+					store: includeRedux ? {
 						"index.ts": "// Export store configuration\n",
 						reducers: {
 							"index.ts": "// Export all reducers\n",
@@ -120,7 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
 						actions: {
 							"index.ts": "// Export all actions\n",
 						},
-					},
+					} : {},
 					utils: {
 						"index.ts": "// Export utility functions\n",
 						"helpers.ts": "// Helper functions\n",
@@ -170,12 +163,22 @@ export function activate(context: vscode.ExtensionContext) {
 				},
 			};
 
-			
 			try {
 				await createFolderStructure(
 					workspaceFolder.uri.fsPath,
 					folderStructure
 				);
+
+				// Generate test files if enabled
+				if (generateTests) {
+					await generateTestFiles(workspaceFolder.uri.fsPath);
+				}
+
+				// Generate style files if enabled
+				if (generateStyles) {
+					await generateStyleFiles(workspaceFolder.uri.fsPath);
+				}
+
 				const successMsg =
 					"React Native folder structure created successfully!";
 				outputChannel.appendLine(successMsg);
@@ -188,8 +191,123 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	);
 
-	context.subscriptions.push(disposable);
-	// Add output channel to subscriptions to properly dispose
+	// Register the component generation command
+	let generateComponentCommand = vscode.commands.registerCommand(
+		"react-native-folder-structure.generateComponent",
+		async () => {
+			const componentName = await vscode.window.showInputBox({
+				prompt: "Enter component name",
+				placeHolder: "MyComponent",
+			});
+
+			if (!componentName) {
+				return;
+			}
+
+			const componentType = await vscode.window.showQuickPick(
+				Object.keys(componentTemplates),
+				{
+					placeHolder: "Select component type",
+				}
+			);
+
+			if (!componentType || !(componentType in componentTemplates)) {
+				return;
+			}
+
+			const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+			if (!workspaceFolder) {
+				vscode.window.showErrorMessage("Please open a workspace first!");
+				return;
+			}
+
+			const componentsPath = path.join(
+				workspaceFolder.uri.fsPath,
+				"src",
+				"components",
+				"common",
+				componentName
+			);
+
+			try {
+				const template = componentTemplates[componentType as keyof typeof componentTemplates];
+				
+				// Create component directory
+				fs.mkdirSync(componentsPath, { recursive: true });
+				
+				// Create component file
+				const componentPath = path.join(
+					componentsPath,
+					`${componentName}.tsx`
+				);
+				fs.writeFileSync(
+					componentPath,
+					template.component.replace('../../theme', '../../../theme')
+				);
+
+				// Create test file if enabled
+				const config = vscode.workspace.getConfiguration('reactNativeFolderStructure');
+				if (config.get('generateTests')) {
+					const testPath = path.join(
+						componentsPath,
+						`__tests__`,
+						`${componentName}.test.tsx`
+					);
+					fs.mkdirSync(path.dirname(testPath), { recursive: true });
+					fs.writeFileSync(
+						testPath,
+						template.test.replace('../' + componentName, '../' + componentName)
+					);
+				}
+
+				// Create styles file if enabled
+				if (config.get('generateStyles')) {
+					const stylesPath = path.join(
+						componentsPath,
+						`${componentName}.styles.ts`
+					);
+					fs.writeFileSync(
+						stylesPath,
+						template.styles.replace('../../theme', '../../../theme')
+					);
+				}
+
+				// Create index.ts for the component
+				const indexPath = path.join(componentsPath, "index.ts");
+				fs.writeFileSync(
+					indexPath,
+					`export * from './${componentName}';\n`
+				);
+
+				// Update common components index.ts
+				const commonIndexPath = path.join(
+					workspaceFolder.uri.fsPath,
+					"src",
+					"components",
+					"common",
+					"index.ts"
+				);
+				const commonIndexContent = fs.existsSync(commonIndexPath)
+					? fs.readFileSync(commonIndexPath, "utf8")
+					: "// Export all common components\n";
+				fs.writeFileSync(
+					commonIndexPath,
+					commonIndexContent + `export * from './${componentName}';\n`
+				);
+
+				vscode.window.showInformationMessage(
+					`Component ${componentName} created successfully!`
+				);
+			} catch (error) {
+				vscode.window.showErrorMessage(
+					`Error creating component: ${error}`
+				);
+			}
+		}
+	);
+
+	context.subscriptions.push(generateCommand);
+	context.subscriptions.push(generateComponentCommand);
 	context.subscriptions.push(outputChannel);
 }
 
@@ -198,6 +316,8 @@ async function createFolderStructure(
 	structure: FolderStructure
 ) {
 	for (const [name, subStructure] of Object.entries(structure)) {
+		if (!subStructure) continue;
+		
 		const fullPath = path.join(basePath, name);
 		outputChannel.appendLine(`Processing: ${fullPath}`);
 
@@ -226,6 +346,67 @@ async function createFolderStructure(
 	}
 }
 
+async function generateTestFiles(basePath: string) {
+	const componentsPath = path.join(basePath, "src", "components", "common");
+	if (fs.existsSync(componentsPath)) {
+		const components = fs.readdirSync(componentsPath);
+		for (const component of components) {
+			if (component.endsWith(".tsx") && !component.endsWith(".test.tsx")) {
+				const componentName = path.basename(component, ".tsx");
+				const testPath = path.join(
+					componentsPath,
+					"__tests__",
+					`${componentName}.test.tsx`
+				);
+				fs.mkdirSync(path.dirname(testPath), { recursive: true });
+				// Add basic test template
+				fs.writeFileSync(
+					testPath,
+					`import React from 'react';
+import { render } from '@testing-library/react-native';
+import { ${componentName} } from '../${componentName}';
+
+describe('${componentName}', () => {
+	it('renders correctly', () => {
+		const { getByTestId } = render(<${componentName} />);
+		expect(getByTestId('${componentName.toLowerCase()}')).toBeTruthy();
+	});
+});`
+				);
+			}
+		}
+	}
+}
+
+async function generateStyleFiles(basePath: string) {
+	const componentsPath = path.join(basePath, "src", "components", "common");
+	if (fs.existsSync(componentsPath)) {
+		const components = fs.readdirSync(componentsPath);
+		for (const component of components) {
+			if (component.endsWith(".tsx") && !component.endsWith(".styles.ts")) {
+				const componentName = path.basename(component, ".tsx");
+				const stylesPath = path.join(
+					componentsPath,
+					`${componentName}.styles.ts`
+				);
+				// Add basic styles template
+				fs.writeFileSync(
+					stylesPath,
+					`import { StyleSheet } from 'react-native';
+import { colors, spacing } from '../../../theme';
+
+export const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		padding: spacing.md,
+	},
+});`
+				);
+			}
+		}
+	}
+}
+
 function generateReadmeContent(folderName: string): string {
 	const descriptions: { [key: string]: string } = {
 		src: "Source code for the React Native application",
@@ -250,8 +431,7 @@ function generateReadmeContent(folderName: string): string {
 		config: "Application configuration files",
 	};
 
-	return `# ${folderName}\n\n${descriptions[folderName] || "Add description here."
-		}\n`;
+	return `# ${folderName}\n\n${descriptions[folderName] || "Add description here."}\n`;
 }
 
 export function deactivate() { }
