@@ -74,9 +74,10 @@ None at the moment.
 
 ## Release Notes
 
-### 1.0.6
-
-Initial release of React Native Folder Structure Generator
+### 1.0.8
+- Fixed file creation logic to properly handle .tsx and .ts files
+- Improved folder structure generation
+- Added better error handling and logging
 
 ## Contributing
 
