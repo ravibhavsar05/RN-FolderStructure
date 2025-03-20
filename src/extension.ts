@@ -64,8 +64,22 @@ export function activate(context: vscode.ExtensionContext) {
 					},
 					components: {
 						common: {
-							"Button.tsx": componentTemplates.button.component,
-							"Card.tsx": componentTemplates.card.component,
+							Button: {
+								"Button.tsx": componentTemplates.button.component,
+								"Button.styles.ts": componentTemplates.button.styles,
+								"__tests__": {
+									"Button.test.tsx": componentTemplates.button.test
+								},
+								"index.ts": "export * from './Button';\n"
+							},
+							Card: {
+								"Card.tsx": componentTemplates.card.component,
+								"Card.styles.ts": componentTemplates.card.styles,
+								"__tests__": {
+									"Card.test.tsx": componentTemplates.card.test
+								},
+								"index.ts": "export * from './Card';\n"
+							},
 							"index.ts": "// Export all common components\nexport * from './Button';\nexport * from './Card';\n",
 						},
 					},

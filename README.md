@@ -30,17 +30,25 @@ For each component, the following structure is created:
 ```
 components/
 └── common/
-    └── ComponentName/
-        ├── ComponentName.tsx
-        ├── ComponentName.styles.ts
-        ├── __tests__/
-        │   └── ComponentName.test.tsx
-        └── index.ts
+    ├── Button/
+    │   ├── Button.tsx
+    │   ├── Button.styles.ts
+    │   ├── __tests__/
+    │   │   └── Button.test.tsx
+    │   └── index.ts
+    ├── Card/
+    │   ├── Card.tsx
+    │   ├── Card.styles.ts
+    │   ├── __tests__/
+    │   │   └── Card.test.tsx
+    │   └── index.ts
+    └── index.ts
 ```
 
 1. **Component Directory** (`ComponentName/`):
    - Contains all files related to the component
    - Has its own `index.ts` for clean exports
+   - Includes styles and tests in the same directory
 
 2. **Component File** (`ComponentName.tsx`):
    - TypeScript React Native component
@@ -199,7 +207,7 @@ None at the moment.
 
 ## Release Notes
 
-### 1.1.1
+### 1.1.2
 - Added smart component generation with templates
 - Added configuration options for folder structure customization
 - Added test file generation with Jest templates

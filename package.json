@@ -3,7 +3,7 @@
   "displayName": "React Native Folder Structure Generator",
   "description": "Generate a standardized folder structure for React Native projects with smart component generation",
   "icon": "RNLogo.png",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "RaviBhavsar",
   "engines": {
     "vscode": "^1.75.0"
